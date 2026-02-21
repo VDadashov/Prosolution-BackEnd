@@ -2,12 +2,23 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { ValidationPipe } from '@nestjs/common';
-import { HttpAllExceptionsFilter } from './common/filters/http-all-exceptions.filter';
+import { HttpAllExceptionsFilter } from './_common/filters/http-all-exceptions.filter';
+import { LoggingInterceptor } from './_common/interceptors/logging.interceptor';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
+  app.setGlobalPrefix('api');
+
+  app.enableCors({
+    origin: 'http://localhost:5173',
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+  });
+
   app.useGlobalFilters(new HttpAllExceptionsFilter());
+  app.useGlobalInterceptors(new LoggingInterceptor());
 
   const config = new DocumentBuilder()
     .setTitle('Prosolution API')

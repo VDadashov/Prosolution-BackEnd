@@ -1,0 +1,19 @@
+---
+description: NestJS documentation and best practices take precedence; never implement changes that conflict with official docs.
+alwaysApply: true
+---
+
+# NestJS Documentation First
+
+- **Üstünlük:** Bu layihədə hər zaman NestJS rəsmi [dokumentasiyası](https://docs.nestjs.com) və tövsiyə olunan praktikalar əsas götürülür.
+- **Dəyişiklik istəyi:** İstifadəçi bir şeyi dəyiş desə belə, əgər bu NestJS doc / best practice ilə uyğun deyilsə, **birbaşa dəyişmə**. Əvəzinə:
+  1. Doc-da nə yazıldığını və ya hansı pattern-in tövsiyə olunduğunu göstər.
+  2. Doc-a uyğun variant təklif et və izah et.
+  3. İstifadəçi açıq şəkildə "doc-a baxmadan belə et" desə, onda onun qərarına hörmət et.
+- **Qısa:** Doc ilə ziddiyyət varsa → birbaşa dəyişmə, əvvəlcə doc-u göstər və uyğun həlli təklif et.
+
+# Sual verəndə əvvəlcə cavab, sonra əməliyyat
+
+- İstifadəçi **sual verəndə** (sual formasında yazanda) məqsəd **cavabı mətn olaraq almaq**dır.
+- **Birbaşa əməliyyat etmə** (kod dəyişikliyi, fayl yaratma/silmə və s.): əvvəlcə cavabı **yalnız mətn** ilə ver; istifadəçi **təsdiqləyəndən** sonra əməliyyatı yerinə yetir.
+- İstifadəçi açıq şəkildə "et", "əlavə et", "dəyiş" kimi əmr verəndə birbaşa edə bilərsən.

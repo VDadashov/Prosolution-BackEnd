@@ -1,0 +1,21 @@
+import { ApiPropertyOptional } from '@nestjs/swagger';
+import { IsOptional, IsInt, Min, Max } from 'class-validator';
+import { Type } from 'class-transformer';
+
+/** Bütün siyahı endpoint-lərində istifadə üçün ümumi pagination query. */
+export class PaginationQueryDto {
+  @ApiPropertyOptional({ default: 1, minimum: 1, description: 'Səhifə nömrəsi' })
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  page?: number = 1;
+
+  @ApiPropertyOptional({ default: 10, minimum: 1, maximum: 100, description: 'Səhifədə element sayı' })
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  @Max(100)
+  limit?: number = 10;
+}

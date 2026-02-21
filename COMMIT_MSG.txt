@@ -1,0 +1,27 @@
+feat: auth, exception system, docs and security improvements
+
+Auth & User
+- Fix changePassword: lookup by userId, username in JWT strategy, Swagger 200 response schema
+- Rename Auth entity to User entity, DB table auth to users
+- Store password as hash only (plain password removed from DB)
+- Register: duplicate email/username check (ConflictException)
+- DTO validation: RegisterDto, LoginDto, ChangePasswordDto (class-validator)
+- ValidationPipe: whitelist, forbidNonWhitelisted, transform
+- JWT_SECRET validation in auth module, synchronize: false in production
+
+Exception system (_common)
+- ErrorCode enum and ErrorMessages (Azerbaijani)
+- BaseException (errorCode-based), getErrorResponse(), setPath()
+- BusinessException, ConflictException, UnauthorizedException
+- ValidationException, DatabaseException, DatabaseConnectionException
+- DatabaseException.fromDatabaseError() — PostgreSQL error code mapping
+- DatabaseConnectionException.fromConnectionError() — connection errors
+- HttpAllExceptionsFilter: unified response format, requestId, production-safe
+- Auth service and controller: custom exceptions + ErrorCode
+- database-exception.filter.ts: ErrorCode compatibility
+
+Docs
+- docs/ARCHITECTURE.md — architecture, error handling, validation, best practices
+- docs/progress.md — progress log (template + milestones)
+- docs/database-schema.md — users table (DBML)
+- progress.md: rename Kapsam to Məzmun (Azerbaijani)

@@ -7,10 +7,10 @@ import {
   Logger,
 } from '@nestjs/common';
 import { Request, Response } from 'express';
-import { BaseException } from '../../_common/exceptions/base.exception';
-import { DatabaseException } from '../../_common/exceptions/database.exception';
-import { DatabaseConnectionException } from '../../_common/exceptions/database-connection.exception';
-import { ErrorCode } from '../../_common/constants/error-codes';
+import { BaseException } from '../exceptions/base.exception';
+import { DatabaseException } from '../exceptions/database.exception';
+import { DatabaseConnectionException } from '../exceptions/database-connection.exception';
+import { ErrorCode } from '../constants/error-codes';
 import { QueryFailedError } from 'typeorm';
 
 const CONNECTION_ERROR_CODES = [
@@ -50,19 +50,40 @@ export class HttpAllExceptionsFilter implements ExceptionFilter {
     } else if (exception instanceof HttpException) {
       status = exception.getStatus();
       const exceptionResponse = exception.getResponse();
-      errorResponse = {
-        success: false,
-        statusCode: status,
-        message:
-          typeof exceptionResponse === 'string'
-            ? exceptionResponse
-            : (exceptionResponse as { message?: string }).message ??
-              exception.message,
-        timestamp: new Date().toISOString(),
-        path: request.url,
-        ...(typeof exceptionResponse === 'object' &&
-          exceptionResponse !== null && { ...(exceptionResponse as object) }),
-      };
+      const res = exceptionResponse as { message?: string | string[]; error?: string };
+      const rawMessage = typeof exceptionResponse === 'string' ? exceptionResponse : res?.message ?? exception.message;
+
+      // 400 Bad Request – həmişə errorCode ilə vahid format
+      const message =
+        typeof rawMessage === 'string'
+          ? rawMessage
+          : Array.isArray(rawMessage)
+            ? rawMessage.join('; ')
+            : (res?.message as string) ?? (exception as Error).message;
+
+      if (status === HttpStatus.BAD_REQUEST) {
+        errorResponse = {
+          success: false,
+          errorCode: ErrorCode.VALIDATION_FAILED,
+          statusCode: status,
+          message: Array.isArray(rawMessage)
+            ? 'Məlumatların yoxlanılması uğursuz oldu'
+            : (typeof message === 'string' ? message : 'Etibarsız sorğu'),
+          timestamp: new Date().toISOString(),
+          path: request.url,
+          ...(Array.isArray(rawMessage) && { details: { validationErrors: rawMessage } }),
+        };
+      } else {
+        errorResponse = {
+          success: false,
+          statusCode: status,
+          message,
+          timestamp: new Date().toISOString(),
+          path: request.url,
+          ...(typeof exceptionResponse === 'object' &&
+            exceptionResponse !== null && { ...(exceptionResponse as object) }),
+        };
+      }
     } else if (exception instanceof QueryFailedError) {
       const dbException = DatabaseException.fromDatabaseError(exception);
       status = dbException.getStatus();

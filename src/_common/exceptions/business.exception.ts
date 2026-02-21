@@ -43,3 +43,32 @@ export class UnauthorizedException extends BaseException {
     this.name = 'UnauthorizedException';
   }
 }
+
+/**
+ * Resurs tapılmadı (404)
+ */
+export class NotFoundException extends BaseException {
+  constructor(
+    errorCode: ErrorCode,
+    message?: string,
+    details?: Record<string, unknown>,
+  ) {
+    super(errorCode, HttpStatus.NOT_FOUND, message, details);
+    this.name = 'NotFoundException';
+  }
+}
+
+/**
+ * İcazə yoxdur (403)
+ */
+export class ForbiddenException extends BaseException {
+  constructor(
+    errorCode: ErrorCode = ErrorCode.AUTH_FORBIDDEN,
+    message?: string,
+    details?: Record<string, unknown>,
+  ) {
+    super(errorCode, HttpStatus.FORBIDDEN, message, details);
+    this.name = 'ForbiddenException';
+  }
+}
+

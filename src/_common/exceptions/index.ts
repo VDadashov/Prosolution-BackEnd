@@ -3,6 +3,8 @@ export {
   BusinessException,
   ConflictException,
   UnauthorizedException,
+  NotFoundException,
+  ForbiddenException,
 } from './business.exception';
 export { DatabaseException } from './database.exception';
 export { DatabaseConnectionException } from './database-connection.exception';

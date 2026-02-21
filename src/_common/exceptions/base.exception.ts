@@ -19,6 +19,8 @@ export interface ErrorResponseBody {
 export abstract class BaseException extends HttpException {
   public readonly errorCode: ErrorCode;
   public readonly timestamp: string;
+  /** İstifadəçiyə göstərilən mesaj (ErrorMessages və ya custom) */
+  public readonly responseMessage: string;
   public readonly path?: string;
   public readonly details?: Record<string, unknown>;
 
@@ -41,6 +43,7 @@ export abstract class BaseException extends HttpException {
     );
     this.errorCode = errorCode;
     this.timestamp = new Date().toISOString();
+    this.responseMessage = errorMessage;
     this.details = details;
     Error.captureStackTrace(this, this.constructor);
   }
@@ -50,7 +53,7 @@ export abstract class BaseException extends HttpException {
       success: false,
       errorCode: this.errorCode,
       statusCode: this.getStatus(),
-      message: this.message,
+      message: this.responseMessage,
       timestamp: this.timestamp,
       ...(this.details && { details: this.details }),
       ...(this.path && { path: this.path }),

@@ -1,8 +1,8 @@
 import { ExceptionFilter, Catch, ArgumentsHost } from '@nestjs/common';
 import { Response } from 'express';
 import { QueryFailedError } from 'typeorm';
-import { DatabaseException } from '../../_common/exceptions/database.exception';
-import { DatabaseConnectionException } from '../../_common/exceptions/database-connection.exception';
+import { DatabaseException } from '../exceptions/database.exception';
+import { DatabaseConnectionException } from '../exceptions/database-connection.exception';
 
 const CONNECTION_ERROR_CODES = [
   'ECONNREFUSED',
