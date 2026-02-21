@@ -57,3 +57,31 @@ Bu fayl, backend inkişaf prosesindəki mərhələləri xronoloji olaraq qeyd et
   - `docs/progress.md` – irəliləyiş gündəliyi (şablon + prosolution mərhələləri)
   - `docs/database-schema.md` – veritabanı sxemi (users cədvəli, DBML üslubu)
 - Qeydlər/Risklər: —
+
+### 2026-02-11 — BaseEntity və Category modulu
+- Mərhələ: Tətbiq
+- Məzmun: Ümumi əsas entity, Category CRUD, ağac strukturu, slug, guard
+- Görülən işlər:
+  - **BaseEntity** (`_common/entities/base.entity.ts`): createdAt, updatedAt, createdBy, updatedBy, isActive, isDeleted. Bütün entity-lər üçün əsas.
+  - **Category entity**: title, slug, order (sort_order), parentId, level, allowProducts; parent/children relation; BaseEntity extend.
+  - **User entity**: BaseEntity extend (createdAt, updatedAt, createdBy, updatedBy, isActive, isDeleted).
+  - **Category slug**: POST-da slug göndərilmir; title əsasında avtomatik (titleToSlug). Azərbaycan/Türk hərfləri transliterasiya: ş→s, ı→i, ə→e və s.
+  - **Category API**: POST (create), PUT by-id/:id (update), DELETE by-id/:id (soft delete). POST/PUT/DELETE yalnız admin və superAdmin (RolesGuard + @Roles).
+  - **GET /categories**: yalnız search, isDeleted; cavab Category[] (pagination yox).
+  - **GET /categories/filtered**: pagination, isDeleted, level, parentId, search, sort. sort = a-z | z-a | order | createdAt (ayrı order parametri yoxdur).
+  - **RequestWithUser** (`_common/interfaces`): Express Request + user (JWT payload); Category controller-da req.user tipi üçün.
+  - **description** Category-dan tamamilə çıxarıldı.
+- Qeydlər/Risklər:
+  - DB-də categories/users cədvəllərinə yeni sütunlar (BaseEntity, title, order, level, isActive, isDeleted və s.) əlavə olunmalıdır; migration və ya sync.
+
+### 2026-02-21 — Slider və Page yeniləmələri
+- Mərhələ: Tətbiq
+- Məzmun: Slider filtered cavabına isActive əlavəsi; Page modulunda multilanguage ləğvi
+- Görülən işlər:
+  - **Slider**: `toSliderResponse`-da `isActive` sahəsi əlavə olundu; getFiltered və getAll/getById cavablarında hər item üçün `isActive` qaytarılır.
+  - **Page — multilanguage ləğv**: Səhifə başlığı artıq tək dildə (string). Entity-də `title` jsonb → varchar(255); `MultiLanguageText` interface silindi.
+  - **Page DTO**: CreatePageDto/UpdatePageDto-da `title` tək string (MaxLength 255); `multi-language-title.dto.ts` silindi.
+  - **PageService**: `getTranslatedField` və `lang` parametrləri çıxarıldı; create/update/findAll/findOne sadə string title ilə işləyir; title dəyişəndə slug da yenilənir və unikallıq yoxlanır.
+  - **PageController**: `lang`, `accept-language` və dil query parametrləri silindi; `allLanguages=true` admin siyahısı üçün saxlanıldı.
+- Qeydlər/Risklər:
+  - Əgər `pages.title` hal-hazırda DB-də jsonb-dırsa, varchar(255)-ə keçid üçün migration və köhnə məlumatın (məs. title->>'az') köçürülməsi tələb oluna bilər.
