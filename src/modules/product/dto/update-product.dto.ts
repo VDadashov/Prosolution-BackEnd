@@ -8,6 +8,8 @@ import {
   ValidateNested,
   Min,
   MaxLength,
+  ArrayMinSize,
+  IsInt,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { ProductImageDto } from './product-image.dto';
@@ -64,14 +66,23 @@ export class UpdateProductDto {
   @IsOptionalPositiveId()
   brandId?: number | null;
 
-  @ApiPropertyOptional({ example: 1, description: 'Kateqoriya id' })
-  @IsOptionalPositiveId()
-  categoryId?: number | null;
+  @ApiPropertyOptional({
+    example: [1, 3],
+    description: 'Kateqoriya id-ləri (minimum 1 element; göndərilərsə əvvəlki siyahı əvəz olunur)',
+    type: [Number],
+  })
+  @IsOptional()
+  @IsArray()
+  @ArrayMinSize(1)
+  @IsInt({ each: true })
+  @Min(1, { each: true })
+  @Type(() => Number)
+  categoryIds?: number[];
 
-  @ApiPropertyOptional({ type: [ProductImageDto] })
+  @ApiPropertyOptional({ type: [ProductImageDto], description: 'null göndərilsə şəkillər silinir, undefined göndərilsə (sahə atılarsa) dəyişmir' })
   @IsOptional()
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => ProductImageDto)
-  images?: ProductImageDto[];
+  images?: ProductImageDto[] | null;
 }

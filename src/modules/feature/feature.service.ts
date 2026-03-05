@@ -383,10 +383,8 @@ export class FeatureService {
   private async getProductCountByOptionIdForCategory(categoryId: number): Promise<Map<number, number>> {
     const rows = await this.productFeatureOptionRepository
       .createQueryBuilder('pfo')
-      .innerJoin(Product, 'p', 'p.id = pfo.product_id AND p.category_id = :categoryId AND p.is_deleted = :isDeleted', {
-        categoryId,
-        isDeleted: false,
-      })
+      .innerJoin(Product, 'p', 'p.id = pfo.product_id AND p.is_deleted = :isDeleted', { isDeleted: false })
+      .innerJoin('product_categories', 'pc', 'pc.product_id = p.id AND pc.category_id = :categoryId', { categoryId })
       .select('pfo.feature_option_id', 'optionId')
       .addSelect('COUNT(DISTINCT pfo.product_id)', 'cnt')
       .groupBy('pfo.feature_option_id')

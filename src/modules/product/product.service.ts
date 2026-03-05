@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { Product } from './entities/product.entity';
 import { ProductFeatureOption } from './entities/product-feature-option.entity';
 import { ProductImage } from './entities/product-image.entity';
@@ -30,19 +30,31 @@ export class ProductService {
     private readonly featureOptionRepository: Repository<FeatureOption>,
   ) {}
 
-  async create(dto: CreateProductDto, username?: string) {
-    const category = await this.categoryRepository.findOne({
-      where: { id: dto.categoryId, isDeleted: false },
+  /** categoryIds massivini yoxla: hamısı mövcud + allowProducts olmalıdır. */
+  private async loadAndValidateCategories(categoryIds: number[]): Promise<Category[]> {
+    const uniqueIds = [...new Set(categoryIds)];
+    const categories = await this.categoryRepository.find({
+      where: uniqueIds.map((id) => ({ id, isDeleted: false })),
     });
-    if (!category) throw new NotFoundException(ErrorCode.CATEGORY_NOT_FOUND);
-    if (!category.allowProducts) {
-      throw new BusinessException(ErrorCode.CATEGORY_DOES_NOT_ALLOW_PRODUCTS);
+    if (categories.length !== uniqueIds.length) {
+      throw new NotFoundException(ErrorCode.CATEGORY_NOT_FOUND);
     }
+    for (const cat of categories) {
+      if (!cat.allowProducts) {
+        throw new BusinessException(ErrorCode.CATEGORY_DOES_NOT_ALLOW_PRODUCTS);
+      }
+    }
+    return categories;
+  }
+
+  async create(dto: CreateProductDto, username?: string) {
+    const categories = await this.loadAndValidateCategories(dto.categoryIds);
+
     const title = dto.title.trim();
     const slug = this.titleToSlug(title);
     await this.ensureProductSlugUnique(slug);
+
     const product = this.productRepository.create({
-      categoryId: dto.categoryId,
       title,
       slug: slug || null,
       price: String(dto.price),
@@ -55,7 +67,9 @@ export class ProductService {
       brandId: dto.brandId ?? null,
       createdBy: username ?? null,
     });
+    product.categories = categories;
     await this.productRepository.save(product);
+
     if (dto.images?.length) {
       for (const img of dto.images) {
         const media = await this.mediaRepository.findOne({
@@ -81,7 +95,7 @@ export class ProductService {
   async getAll(params: { search?: string; isDeleted?: boolean }) {
     const qb = this.productRepository
       .createQueryBuilder('product')
-      .leftJoinAndSelect('product.category', 'category')
+      .leftJoinAndSelect('product.categories', 'categories')
       .leftJoinAndSelect('product.images', 'images')
       .leftJoinAndSelect('images.media', 'media');
 
@@ -152,6 +166,12 @@ export class ProductService {
       : new Map<number, number[]>();
 
     const countQb = this.productRepository.createQueryBuilder('product');
+
+    if (params.categorySlug?.trim()) {
+      countQb.innerJoin('product.categories', 'countCategory')
+        .andWhere('countCategory.slug = :categorySlug', { categorySlug: params.categorySlug.trim() });
+    }
+
     if (params.isDeleted === true) {
       countQb.andWhere('product.is_deleted = :isDeleted', { isDeleted: true });
     } else if (params.isDeleted === false) {
@@ -162,10 +182,6 @@ export class ProductService {
     if (params.search?.trim()) {
       const search = `%${params.search.trim()}%`;
       countQb.andWhere('(product.title ILIKE :search OR product.slug ILIKE :search)', { search });
-    }
-    if (params.categorySlug?.trim()) {
-      countQb.leftJoin('product.category', 'countCategory');
-      countQb.andWhere('countCategory.slug = :categorySlug', { categorySlug: params.categorySlug.trim() });
     }
     if (params.minPrice != null && params.minPrice >= 0) {
       countQb.andWhere('CAST(product.price AS DECIMAL(12,2)) >= :minPrice', { minPrice: params.minPrice });
@@ -186,9 +202,13 @@ export class ProductService {
 
     const qb = this.productRepository
       .createQueryBuilder('product')
-      .leftJoinAndSelect('product.category', 'category')
+      .leftJoinAndSelect('product.categories', 'categories')
       .leftJoinAndSelect('product.images', 'images')
       .leftJoinAndSelect('images.media', 'media');
+
+    if (params.categorySlug?.trim()) {
+      qb.andWhere('categories.slug = :categorySlug', { categorySlug: params.categorySlug.trim() });
+    }
 
     if (params.isDeleted === true) {
       qb.andWhere('product.is_deleted = :isDeleted', { isDeleted: true });
@@ -200,9 +220,6 @@ export class ProductService {
     if (params.search?.trim()) {
       const search = `%${params.search.trim()}%`;
       qb.andWhere('(product.title ILIKE :search OR product.slug ILIKE :search)', { search });
-    }
-    if (params.categorySlug?.trim()) {
-      qb.andWhere('category.slug = :categorySlug', { categorySlug: params.categorySlug.trim() });
     }
     if (params.minPrice != null && params.minPrice >= 0) {
       qb.andWhere('CAST(product.price AS DECIMAL(12,2)) >= :minPrice', { minPrice: params.minPrice });
@@ -241,7 +258,7 @@ export class ProductService {
   async getById(id: number) {
     const product = await this.productRepository.findOne({
       where: { id, isDeleted: false },
-      relations: ['category', 'images', 'images.media', "brand"],
+      relations: ['categories', 'images', 'images.media', 'brand'],
     });
     if (!product) throw new NotFoundException(ErrorCode.PRODUCT_NOT_FOUND);
     return this.toProductResponse(product);
@@ -277,7 +294,6 @@ export class ProductService {
     const mainImage = imagesList.find((img) => img.isMain);
     return {
       id: product.id,
-      categoryId: product.categoryId,
       title: product.title,
       slug: product.slug,
       price: product.price,
@@ -289,17 +305,15 @@ export class ProductService {
       discountPrice: product.discountPrice,
       brandId: product.brandId,
       brandName: product.brand?.title,
-      category: product.category
-        ? {
-            id: product.category.id,
-            title: product.category.title,
-            slug: product.category.slug,
-            order: product.category.order,
-            parentId: product.category.parentId,
-            level: product.category.level,
-            allowProducts: product.category.allowProducts,
-          }
-        : undefined,
+      categories: (product.categories || []).map((cat) => ({
+        id: cat.id,
+        title: cat.title,
+        slug: cat.slug,
+        order: cat.order,
+        parentId: cat.parentId,
+        level: cat.level,
+        allowProducts: cat.allowProducts,
+      })),
       mainImage: mainImage ? this.toImageResponse(mainImage) : null,
       images,
     };
@@ -308,8 +322,10 @@ export class ProductService {
   async update(id: number, dto: UpdateProductDto, username?: string) {
     const product = await this.productRepository.findOne({
       where: { id, isDeleted: false },
+      relations: ['categories'],
     });
     if (!product) throw new NotFoundException(ErrorCode.PRODUCT_NOT_FOUND);
+
     if (dto.title !== undefined) {
       product.title = dto.title.trim();
       product.slug = this.titleToSlug(product.title) || null;
@@ -323,10 +339,15 @@ export class ProductService {
     if (dto.discountEndDate !== undefined) product.discountEndDate = dto.discountEndDate ?? null;
     if (dto.discountPrice !== undefined) product.discountPrice = dto.discountPrice != null ? String(dto.discountPrice) : null;
     if (dto.brandId !== undefined) product.brandId = dto.brandId ?? null;
-    if (dto.categoryId !== undefined && dto.categoryId != null) product.categoryId = dto.categoryId;
+
+    if (dto.categoryIds !== undefined && dto.categoryIds.length > 0) {
+      const categories = await this.loadAndValidateCategories(dto.categoryIds);
+      product.categories = categories;
+    }
+
     if (dto.images !== undefined) {
       await this.productImageRepository.delete({ productId: id });
-      if (dto.images.length) {
+      if (dto.images?.length) {
         for (const img of dto.images) {
           const media = await this.mediaRepository.findOne({
             where: { id: img.mediaId, isDeleted: false },

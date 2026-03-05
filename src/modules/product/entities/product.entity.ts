@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, JoinColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, ManyToMany, JoinColumn, JoinTable, OneToMany } from 'typeorm';
 import { BaseEntity } from '../../../_common/entities';
 import { Category } from '../../category/entities/category.entity';
 import { Brand } from '../../brand/entities/brand.entity';
@@ -9,9 +9,6 @@ import { ProductImage } from './product-image.entity';
 export class Product extends BaseEntity {
   @PrimaryGeneratedColumn()
   id: number;
-
-  @Column({ type: 'int', name: 'category_id' })
-  categoryId: number;
 
   @Column({ type: 'varchar', length: 255 })
   title: string;
@@ -43,9 +40,13 @@ export class Product extends BaseEntity {
   @Column({ type: 'int', nullable: true, name: 'brand_id' })
   brandId: number | null;
 
-  @ManyToOne(() => Category, { onDelete: 'RESTRICT' })
-  @JoinColumn({ name: 'category_id' })
-  category: Category;
+  @ManyToMany(() => Category, { onDelete: 'CASCADE' } as any)
+  @JoinTable({
+    name: 'product_categories',
+    joinColumn: { name: 'product_id', referencedColumnName: 'id' },
+    inverseJoinColumn: { name: 'category_id', referencedColumnName: 'id' },
+  })
+  categories: Category[];
 
   @ManyToOne(() => Brand, { onDelete: 'SET NULL' })
   @JoinColumn({ name: 'brand_id' })

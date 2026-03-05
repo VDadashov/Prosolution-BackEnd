@@ -81,11 +81,12 @@ export class CategoryService {
   private async getProductCountMap(categoryIds: number[]): Promise<Map<number, number>> {
     if (categoryIds.length === 0) return new Map();
     const rows = await this.productRepository.createQueryBuilder('p')
-      .select('p.category_id', 'categoryId')
-      .addSelect('COUNT(*)', 'count')
-      .where('p.category_id IN (:...ids)', { ids: categoryIds })
+      .select('pc.category_id', 'categoryId')
+      .addSelect('COUNT(DISTINCT p.id)', 'count')
+      .innerJoin('product_categories', 'pc', 'pc.product_id = p.id')
+      .where('pc.category_id IN (:...ids)', { ids: categoryIds })
       .andWhere('p.is_deleted = :isDeleted', { isDeleted: false })
-      .groupBy('p.category_id')
+      .groupBy('pc.category_id')
       .getRawMany<{ categoryId: number; count: string }>();
     const map = new Map<number, number>();
     for (const row of rows) {

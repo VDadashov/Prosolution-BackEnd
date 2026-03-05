@@ -85,3 +85,14 @@ Bu fayl, backend inkişaf prosesindəki mərhələləri xronoloji olaraq qeyd et
   - **PageController**: `lang`, `accept-language` və dil query parametrləri silindi; `allLanguages=true` admin siyahısı üçün saxlanıldı.
 - Qeydlər/Risklər:
   - Əgər `pages.title` hal-hazırda DB-də jsonb-dırsa, varchar(255)-ə keçid üçün migration və köhnə məlumatın (məs. title->>'az') köçürülməsi tələb oluna bilər.
+
+### 2026-02-21 — Product çox kateqoriya dəstəyi (ManyToMany)
+- Mərhələ: Tətbiq
+- Məzmun: Product modelindən tək `categoryId` (ManyToOne) çıxarıldı; bir məhsulun bir neçə kateqoriyası ola bilməsi üçün ManyToMany relation əlavə edildi
+- Görülən işlər:
+  - **Product entity**: `categoryId` sütunu və `@ManyToOne` silindi; `@ManyToMany + @JoinTable` əlavə olundu (`product_categories` join table: product_id, category_id).
+  - **CreateProductDto**: `categoryId: number` → `categoryIds: number[]` (min 1 element, hər biri ≥1 tam ədəd).
+  - **UpdateProductDto**: `categoryId?` → `categoryIds?: number[]` (optional; göndərilərsə əvvəlki siyahı tam əvəz olunur).
+  - **ProductService**: `loadAndValidateCategories` helper əlavə edildi (mövcudluq + allowProducts yoxlaması); `create/update` categories relation ilə işləyir; `getAll/getFiltered/getById` `product.categories` join-ı istifadə edir; `toProductResponse`-da `categoryId/category` → `categories: []` massivi; `getFiltered`-in categorySlug filteri `INNER JOIN product.categories` ilə yeniləndi.
+- Qeydlər/Risklər:
+  - DB-də `products.category_id` sütunu silinməli, yeni `product_categories` (product_id FK, category_id FK) cədvəli yaradılmalıdır; migration tələb olunur.

@@ -13,6 +13,7 @@ import {
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBody, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { ApiResponses } from '../../_common/swagger';
+import { Public } from '../../_common/decorators/public.decorator';
 import { RequestWithUser } from '../../_common/interfaces';
 import { Roles } from '../../_common/decorators/roles.decorator';
 import { RolesGuard } from '../../_common/guards/roles.guard';
@@ -46,6 +47,7 @@ export class CategoryController {
   }
 
   @Get()
+  @Public()
   @ApiOperation({ summary: 'Get all categories – yalnız search, isDeleted (pagination yox)' })
   @ApiResponse(ApiResponses.list('Category'))
   @ApiResponse(ApiResponses.validationFailed())
@@ -57,6 +59,7 @@ export class CategoryController {
   }
 
   @Get('filtered')
+  @Public()
   @ApiOperation({ summary: 'Get categories filtered – pagination, isDeleted, level, parentId, search, sort (default: level)' })
   @ApiResponse(ApiResponses.paginated('Category'))
   @ApiResponse(ApiResponses.validationFailed())
@@ -73,6 +76,7 @@ export class CategoryController {
   }
 
   @Get('children/by-parent/:parentId')
+  @Public()
   @ApiOperation({ summary: 'Verilən kateqoriyanın uşaq kateqoriyaları – pagination, search, isActive, sort' })
   @ApiResponse(ApiResponses.paginated('Category'))
   @ApiResponse(ApiResponses.notFound('Category'))
@@ -90,6 +94,7 @@ export class CategoryController {
   }
 
   @Get('by-slug/:slug')
+  @Public()
   @ApiOperation({ summary: 'Get category by slug' })
   @ApiResponse(ApiResponses.one('Category'))
   @ApiResponse(ApiResponses.notFound('Category'))
@@ -98,6 +103,7 @@ export class CategoryController {
   }
 
   @Get('by-id/:id')
+  @Public()
   @ApiOperation({ summary: 'Get category by id (childrenCount; uşaqlar üçün GET /categories/children/by-parent/:parentId)' })
   @ApiResponse(ApiResponses.one('Category'))
   @ApiResponse(ApiResponses.notFound('Category'))

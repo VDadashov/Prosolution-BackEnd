@@ -8,16 +8,26 @@ import {
   ValidateNested,
   Min,
   MaxLength,
+  ArrayMinSize,
+  IsInt,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { ProductImageDto } from './product-image.dto';
-import { IsPositiveId, IsOptionalPositiveId, IsTitleLongField, IsSortOrder } from '../../../_common/validations';
+import { IsOptionalPositiveId, IsTitleLongField, IsSortOrder } from '../../../_common/validations';
 import { ValidationLengths } from '../../../_common/validations';
 
 export class CreateProductDto {
-  @ApiProperty({ example: 1, description: 'Kateqoriya id (allowProducts=true olmalıdır)' })
-  @IsPositiveId()
-  categoryId: number;
+  @ApiProperty({
+    example: [1, 3],
+    description: 'Kateqoriya id-ləri (hər biri allowProducts=true olmalıdır, minimum 1 element)',
+    type: [Number],
+  })
+  @IsArray()
+  @ArrayMinSize(1)
+  @IsInt({ each: true })
+  @Min(1, { each: true })
+  @Type(() => Number)
+  categoryIds: number[];
 
   @ApiProperty({ example: 'MacBook Pro 14"' })
   @IsTitleLongField()
@@ -62,14 +72,14 @@ export class CreateProductDto {
   @Min(0)
   discountPrice?: number;
 
-  @ApiPropertyOptional({ example: 1, description: 'Brend id (brands cədvəli)' })
+  @ApiPropertyOptional({ example: 1, description: 'Brend id (brands cədvəli), null göndərilsə brand silinir' })
   @IsOptionalPositiveId()
-  brandId?: number;
+  brandId?: number | null;
 
-  @ApiPropertyOptional({ type: [ProductImageDto] })
+  @ApiPropertyOptional({ type: [ProductImageDto], description: 'null göndərilsə şəkillər saxlanılır, [] göndərilsə silinir' })
   @IsOptional()
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => ProductImageDto)
-  images?: ProductImageDto[];
+  images?: ProductImageDto[] | null;
 }
