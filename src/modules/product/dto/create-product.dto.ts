@@ -8,7 +8,6 @@ import {
   ValidateNested,
   Min,
   MaxLength,
-  ArrayMinSize,
   IsInt,
 } from 'class-validator';
 import { Type } from 'class-transformer';
@@ -17,17 +16,17 @@ import { IsOptionalPositiveId, IsTitleLongField, IsSortOrder } from '../../../_c
 import { ValidationLengths } from '../../../_common/validations';
 
 export class CreateProductDto {
-  @ApiProperty({
+  @ApiPropertyOptional({
     example: [1, 3],
-    description: 'Kateqoriya id-ləri (hər biri allowProducts=true olmalıdır, minimum 1 element)',
+    description: 'Kateqoriya id-ləri (hər biri allowProducts=true olmalıdır); null və ya göndərilməzsə boş saxlanılır',
     type: [Number],
   })
+  @IsOptional()
   @IsArray()
-  @ArrayMinSize(1)
   @IsInt({ each: true })
   @Min(1, { each: true })
   @Type(() => Number)
-  categoryIds: number[];
+  categoryIds?: number[] | null;
 
   @ApiProperty({ example: 'MacBook Pro 14"' })
   @IsTitleLongField()
@@ -47,7 +46,7 @@ export class CreateProductDto {
 
   @ApiPropertyOptional({ example: 0 })
   @IsSortOrder()
-  soldCount?: number;
+  stockCount?: number;
 
   @ApiPropertyOptional({ example: true })
   @IsOptional()

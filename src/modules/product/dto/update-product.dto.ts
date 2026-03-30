@@ -37,7 +37,7 @@ export class UpdateProductDto {
 
   @ApiPropertyOptional({ example: 0 })
   @IsSortOrder()
-  soldCount?: number;
+  stockCount?: number;
 
   @ApiPropertyOptional({ example: true })
   @IsOptional()

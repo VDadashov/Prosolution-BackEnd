@@ -48,7 +48,9 @@ export class ProductService {
   }
 
   async create(dto: CreateProductDto, username?: string) {
-    const categories = await this.loadAndValidateCategories(dto.categoryIds);
+    const categories = dto.categoryIds?.length
+      ? await this.loadAndValidateCategories(dto.categoryIds)
+      : [];
 
     const title = dto.title.trim();
     const slug = this.titleToSlug(title);
@@ -59,7 +61,7 @@ export class ProductService {
       slug: slug || null,
       price: String(dto.price),
       description: dto.description?.trim() || null,
-      soldCount: dto.soldCount ?? 0,
+      stockCount: dto.stockCount ?? 0,
       inStock: dto.inStock ?? true,
       discountStartDate: dto.discountStartDate ?? null,
       discountEndDate: dto.discountEndDate ?? null,
@@ -89,6 +91,27 @@ export class ProductService {
       await this.productImageRepository.save(images);
     }
     return this.getById(product.id);
+  }
+
+  async bulkCreate(items: CreateProductDto[], username?: string) {
+    const results: { index: number; product?: Awaited<ReturnType<typeof this.getById>>; error?: string }[] = [];
+
+    for (let i = 0; i < items.length; i++) {
+      try {
+        const product = await this.create(items[i], username);
+        results.push({ index: i, product });
+      } catch (err: any) {
+        results.push({ index: i, error: err?.message ?? 'Unknown error' });
+      }
+    }
+
+    const failed = results.filter((r) => r.error);
+    return {
+      total: items.length,
+      created: results.filter((r) => !r.error).length,
+      failed: failed.length,
+      results,
+    };
   }
 
   /** Bütün məhsullar – yalnız search və isDeleted. Pagination yox, array qaytarır. */
@@ -298,7 +321,7 @@ export class ProductService {
       slug: product.slug,
       price: product.price,
       description: product.description,
-      soldCount: product.soldCount,
+      stockCount: product.stockCount,
       inStock: product.inStock,
       discountStartDate: product.discountStartDate,
       discountEndDate: product.discountEndDate,
@@ -333,7 +356,7 @@ export class ProductService {
     }
     if (dto.price !== undefined) product.price = String(dto.price);
     if (dto.description !== undefined) product.description = dto.description?.trim() || null;
-    if (dto.soldCount !== undefined) product.soldCount = dto.soldCount;
+    if (dto.stockCount !== undefined) product.stockCount = dto.stockCount;
     if (dto.inStock !== undefined) product.inStock = dto.inStock;
     if (dto.discountStartDate !== undefined) product.discountStartDate = dto.discountStartDate ?? null;
     if (dto.discountEndDate !== undefined) product.discountEndDate = dto.discountEndDate ?? null;

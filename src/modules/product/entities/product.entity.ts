@@ -22,8 +22,8 @@ export class Product extends BaseEntity {
   @Column({ type: 'text', nullable: true })
   description: string | null;
 
-  @Column({ type: 'int', default: 0, name: 'sold_count' })
-  soldCount: number;
+  @Column({ type: 'int', default: 0, name: 'stock_count' })
+  stockCount: number;
 
   @Column({ type: 'boolean', default: true, name: 'in_stock' })
   inStock: boolean;

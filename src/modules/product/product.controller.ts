@@ -19,6 +19,7 @@ import { RolesGuard } from '../../_common/guards/roles.guard';
 import { UserRole } from '../../_common/enums/role.enum';
 import { ProductService } from './product.service';
 import { CreateProductDto } from './dto/create-product.dto';
+import { BulkCreateProductDto } from './dto/bulk-create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { AssignFeatureOptionsDto } from './dto/assign-feature-options.dto';
 import { GetProductsQueryDto } from './dto/get-products-query.dto';
@@ -42,6 +43,17 @@ export class ProductController {
   @ApiResponse(ApiResponses.unprocessable('Category does not allow products'))
   async create(@Body() body: CreateProductDto, @Req() req: RequestWithUser) {
     return this.productService.create(body, req.user?.username);
+  }
+
+  @Post('bulk')
+  @UseGuards(RolesGuard)
+  @Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN)
+  @ApiOperation({ summary: 'Bulk create products – eyni anda bir neçə məhsul yarat' })
+  @ApiBody({ type: BulkCreateProductDto })
+  @ApiResponse(ApiResponses.created('BulkProduct'))
+  @ApiResponse(ApiResponses.validationFailed())
+  async bulkCreate(@Body() body: BulkCreateProductDto, @Req() req: RequestWithUser) {
+    return this.productService.bulkCreate(body.items, req.user?.username);
   }
 
   @Get()
