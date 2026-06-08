@@ -14,7 +14,7 @@ import {
 import { ApiTags, ApiOperation, ApiBody, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { ApiResponses } from '../../_common/swagger';
 import { Public } from '../../_common/decorators/public.decorator';
-import { RequestWithUser } from '../../_common/interfaces';
+import type { RequestWithUser } from '../../_common/interfaces/request-with-user.interface';
 import { Roles } from '../../_common/decorators/roles.decorator';
 import { RolesGuard } from '../../_common/guards/roles.guard';
 import { UserRole } from '../../_common/enums/role.enum';

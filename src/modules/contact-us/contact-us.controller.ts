@@ -9,7 +9,7 @@ import { ContactUsService } from './contact-us.service';
 import { CreateContactUsDto } from './dto/create-contact-us.dto';
 import { GetContactUsQueryDto } from './dto/get-contact-us-query.dto';
 import { GetContactUsFilteredQueryDto } from './dto/get-contact-us-filtered-query.dto';
-import { RequestWithUser } from '../../_common/interfaces';
+import type { RequestWithUser } from '../../_common/interfaces/request-with-user.interface';
 
 @ApiTags('ContactUs')
 @Controller('contact-us')
