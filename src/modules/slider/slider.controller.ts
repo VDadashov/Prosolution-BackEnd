@@ -13,6 +13,7 @@ import {
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBody, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { ApiResponses } from '../../_common/swagger';
+import { Public } from '../../_common/decorators/public.decorator';
 import { RequestWithUser } from '../../_common/interfaces';
 import { Roles } from '../../_common/decorators/roles.decorator';
 import { RolesGuard } from '../../_common/guards/roles.guard';
@@ -46,6 +47,7 @@ export class SliderController {
   }
 
   @Get()
+  @Public()
   @ApiOperation({ summary: 'Get all sliders – yalnız search, isDeleted (pagination yox)' })
   @ApiResponse(ApiResponses.list('Slider'))
   @ApiResponse(ApiResponses.validationFailed())
@@ -57,6 +59,7 @@ export class SliderController {
   }
 
   @Get('filtered')
+  @Public()
   @ApiOperation({ summary: 'Get sliders filtered – pagination, isDeleted, search, sort (a-z | z-a | order | createdAt)' })
   @ApiResponse(ApiResponses.paginated('Slider'))
   @ApiResponse(ApiResponses.validationFailed())
@@ -66,11 +69,13 @@ export class SliderController {
       limit: query.limit,
       search: query.search,
       isDeleted: query.isDeleted,
+      isActive: query.isActive,
       sort: query.sort,
     });
   }
 
   @Get('by-id/:id')
+  @Public()
   @ApiOperation({ summary: 'Get slider by id' })
   @ApiResponse(ApiResponses.one('Slider'))
   @ApiResponse(ApiResponses.notFound('Slider'))

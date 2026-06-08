@@ -27,6 +27,12 @@ export class GetSlidersFilteredQueryDto extends PaginationQueryDto {
   @IsBoolean()
   isDeleted?: boolean;
 
+  @ApiPropertyOptional({ description: 'true = yalnız aktiv, false = yalnız qeyri-aktiv' })
+  @IsOptional()
+  @Transform(({ value }) => toBoolean(value))
+  @IsBoolean()
+  isActive?: boolean;
+
   @ApiPropertyOptional({
     description: 'Sıralama: a-z (title artan), z-a (title azalan), order (sort_order), createdAt',
     enum: ['a-z', 'z-a', 'order', 'createdAt'],

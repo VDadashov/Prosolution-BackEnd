@@ -13,6 +13,7 @@ import {
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBody, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { ApiResponses } from '../../_common/swagger';
+import { Public } from '../../_common/decorators/public.decorator';
 import { RequestWithUser } from '../../_common/interfaces';
 import { Roles } from '../../_common/decorators/roles.decorator';
 import { RolesGuard } from '../../_common/guards/roles.guard';
@@ -46,6 +47,7 @@ export class PartnerController {
   }
 
   @Get()
+  @Public()
   @ApiOperation({ summary: 'Get all partners – yalnız search, isDeleted (pagination yox)' })
   @ApiResponse(ApiResponses.list('Partner'))
   @ApiResponse(ApiResponses.validationFailed())
@@ -57,6 +59,7 @@ export class PartnerController {
   }
 
   @Get('filtered')
+  @Public()
   @ApiOperation({ summary: 'Get partners filtered – pagination, isDeleted, search, sort (a-z | z-a | createdAt)' })
   @ApiResponse(ApiResponses.paginated('Partner'))
   @ApiResponse(ApiResponses.validationFailed())
@@ -71,6 +74,7 @@ export class PartnerController {
   }
 
   @Get('by-id/:id')
+  @Public()
   @ApiOperation({ summary: 'Get partner by id' })
   @ApiResponse(ApiResponses.one('Partner'))
   @ApiResponse(ApiResponses.notFound('Partner'))

@@ -70,6 +70,7 @@ export class SliderService {
     limit?: number;
     search?: string;
     isDeleted?: boolean;
+    isActive?: boolean;
     sort?: 'a-z' | 'z-a' | 'order' | 'createdAt';
   }) {
     const { page, limit } = normalizePagination(params);
@@ -83,6 +84,8 @@ export class SliderService {
     } else if (params.isDeleted === false) {
       qb.andWhere('slider.is_deleted = :isDeleted', { isDeleted: false });
     }
+    if (params.isActive === true) qb.andWhere('slider.is_active = :isActive', { isActive: true });
+    if (params.isActive === false) qb.andWhere('slider.is_active = :isActive', { isActive: false });
     if (params.search?.trim()) {
       const search = `%${params.search.trim()}%`;
       qb.andWhere('(slider.title ILIKE :search OR slider.slug ILIKE :search)', { search });

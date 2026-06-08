@@ -13,6 +13,7 @@ import {
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBody, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { ApiResponses } from '../../_common/swagger';
+import { Public } from '../../_common/decorators/public.decorator';
 import { RequestWithUser } from '../../_common/interfaces';
 import { Roles } from '../../_common/decorators/roles.decorator';
 import { RolesGuard } from '../../_common/guards/roles.guard';
@@ -46,6 +47,7 @@ export class BrandController {
   }
 
   @Get()
+  @Public()
   @ApiOperation({ summary: 'Get all brands – yalnız search, isDeleted (pagination yox)' })
   @ApiResponse(ApiResponses.list('Brand'))
   @ApiResponse(ApiResponses.validationFailed())
@@ -57,6 +59,7 @@ export class BrandController {
   }
 
   @Get('filtered')
+  @Public()
   @ApiOperation({ summary: 'Get brands filtered – pagination, isDeleted, isActive, search, sort (a-z | z-a | createdAt)' })
   @ApiResponse(ApiResponses.paginated('Brand'))
   @ApiResponse(ApiResponses.validationFailed())
@@ -72,6 +75,7 @@ export class BrandController {
   }
 
   @Get('by-id/:id')
+  @Public()
   @ApiOperation({ summary: 'Get brand by id' })
   @ApiResponse(ApiResponses.one('Brand'))
   @ApiResponse(ApiResponses.notFound('Brand'))

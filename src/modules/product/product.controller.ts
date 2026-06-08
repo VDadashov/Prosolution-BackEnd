@@ -13,6 +13,7 @@ import {
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBody, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { ApiResponses } from '../../_common/swagger';
+import { Public } from '../../_common/decorators/public.decorator';
 import { RequestWithUser } from '../../_common/interfaces';
 import { Roles } from '../../_common/decorators/roles.decorator';
 import { RolesGuard } from '../../_common/guards/roles.guard';
@@ -57,6 +58,7 @@ export class ProductController {
   }
 
   @Get()
+  @Public()
   @ApiOperation({ summary: 'Get all products – yalnız search, isDeleted (pagination yox)' })
   @ApiResponse(ApiResponses.list('Product'))
   @ApiResponse(ApiResponses.validationFailed())
@@ -68,6 +70,7 @@ export class ProductController {
   }
 
   @Get('filtered')
+  @Public()
   @ApiOperation({
     summary: 'Get products filtered – pagination, search, isDeleted, isActive, categorySlug, featureOptionIds, minPrice, maxPrice, brandId, inStock, sort',
   })
@@ -91,6 +94,7 @@ export class ProductController {
   }
 
   @Get('by-id/:id')
+  @Public()
   @ApiOperation({ summary: 'Get product by id' })
   @ApiResponse(ApiResponses.one('Product'))
   @ApiResponse(ApiResponses.notFound('Product'))
