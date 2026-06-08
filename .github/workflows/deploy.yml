@@ -32,6 +32,7 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
             cd /var/www/prosolution/backend
+            git reset --hard HEAD
             git pull origin master
             echo "${{ secrets.ENV_FILE }}" > .env
             npm ci --omit=dev
