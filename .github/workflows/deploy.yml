@@ -33,6 +33,7 @@ jobs:
           script: |
             cd /var/www/prosolution/backend
             git pull origin master
+            echo "${{ secrets.ENV_FILE }}" > .env
             npm ci --omit=dev
             npm run build
             pm2 restart prosolution-backend
